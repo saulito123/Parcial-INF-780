@@ -1,0 +1,37 @@
+{
+  "name": "books-solution",
+  "version": "1.0.0",
+  "description": "Minimal NestJS app implementing /books endpoints (in-memory) to match primerParcial.pdf",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "nest start",
+    "start:dev": "ts-node -r tsconfig-paths/register src/main.ts",
+    "dev": "npm run start:dev",
+    "build": "tsc -p tsconfig.json",
+    "test": "jest",
+    "test:cov": "jest --coverage"
+  },
+  "dependencies": {
+    "@nestjs/common": "^9.0.0",
+    "@nestjs/core": "^9.0.0",
+    "@nestjs/mapped-types": "^2.1.0",
+    "@nestjs/platform-express": "^9.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0",
+    "reflect-metadata": "^0.1.13",
+    "rimraf": "^3.0.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^9.4.3",
+    "@types/jest": "^29.0.0",
+    "@types/node": "^18.0.0",
+    "@types/supertest": "^6.0.3",
+    "jest": "^29.0.0",
+    "supertest": "^6.3.4",
+    "ts-jest": "^29.0.0",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.1.0",
+    "typescript": "^5.0.0"
+  }
+}

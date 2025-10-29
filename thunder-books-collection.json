@@ -1,0 +1,59 @@
+{
+  "requests": [
+    {
+      "name": "Crear libro",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:3000/books",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"titulo\": \"Clean Code\", \"autor\": \"Robert C. Martin\", \"isbn\": \"9780132350884\", \"anioPublicacion\": 2008, \"categoria\": \"tecnico\", \"stock\": 5}"
+        },
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Listar libros",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:3000/books?q=clean&conStock=1&page=1&limit=10"
+      }
+    },
+    {
+      "name": "Obtener detalle",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:3000/books/1"
+      }
+    },
+    {
+      "name": "Actualizar",
+      "request": {
+        "method": "PATCH",
+        "url": "http://localhost:3000/books/1",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"stock\": 12}"
+        },
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Eliminar",
+      "request": {
+        "method": "DELETE",
+        "url": "http://localhost:3000/books/1"
+      }
+    }
+  ]
+}
