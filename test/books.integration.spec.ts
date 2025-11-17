@@ -1,4 +1,3 @@
-// test/books.integration.spec.ts
 
 import { Repository } from 'typeorm';
 import { BooksService } from 'src/books/books.service';
@@ -88,9 +87,6 @@ describe('Books Integration Tests (Service <-> MySQL)', () => {
         await expect(service.create(invalidDto)).rejects.toThrow('Stock inválido');
     });
 
-    // =========================================================================
-    // 2. LECTURA (GET /books/:id) - Verifica 200, 404
-    // =========================================================================
 
     it('Debería obtener un libro por ID', async () => {
         const bookSave = await repository.save(repository.create(BASE_CREATE_DTO));
@@ -105,10 +101,7 @@ describe('Books Integration Tests (Service <-> MySQL)', () => {
         await expect(service.findOne(9999)).rejects.toThrow(NotFoundException);
         await expect(service.findOne(9999)).rejects.toThrow(`Libro con ID 9999 no existe`); 
     });
-    
-    // =========================================================================
-    // 3. ACTUALIZACIÓN (PATCH /books/:id) - Verifica 200, 404, 409, 400
-    // =========================================================================
+
 
     it('Debería actualizar parcialmente un campo (stock) y verificar la persistencia', async () => {
         const savedBook = await repository.save(repository.create(BASE_CREATE_DTO));
@@ -141,9 +134,7 @@ describe('Books Integration Tests (Service <-> MySQL)', () => {
         await expect(service.update(savedBook.id, { stock: -10 })).rejects.toThrow('Stock inválido');
     });
 
-    // =========================================================================
-    // 4. ELIMINACIÓN (DELETE /books/:id) - Verifica 204, 404
-    // =========================================================================
+  
     
     it('Debería eliminar un libro de la base de datos', async () => {
         const savedBook = await repository.save(repository.create(BASE_CREATE_DTO));
