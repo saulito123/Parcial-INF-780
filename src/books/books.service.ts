@@ -1,71 +1,85 @@
+// src/books/books.service.ts
 
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Book } from './book.entity';
-import { CreateBookDto } from './dto.create-book';
-import { UpdateBookDto } from './dto.update-book';
+import { CreateBookDto } from './dto.create-book'; 
+import { UpdateBookDto } from './dto.update-book'; 
 
 @Injectable()
 export class BooksService {
-  private books: Book[] = [];
-  private seq = 1;
+  constructor(
+    @InjectRepository(Book) 
+    private bookRepository: Repository<Book>,
+  ) {}
 
-  create(dto: CreateBookDto): Book {
-    const exists = this.books.find(b => b.titulo === dto.titulo && b.autor === dto.autor);
-    if (exists) throw new ConflictException('El libro ya existe');
-    if (dto.stock < 0) throw new BadRequestException('Stock inválido');
-    const book: Book = { id: this.seq++, ...dto, creadoEn: new Date(), actualizadoEn: new Date() };
-    this.books.push(book);
+  // Validación 400 Bad Request
+  private validateStock(stock: number): void {
+    if (stock !== undefined && stock < 0) {
+      throw new BadRequestException('Stock inválido'); 
+    }
+  }
+
+  // Lógica de Creación (POST)
+  async create(dto: CreateBookDto): Promise<Book> {
+    this.validateStock(dto.stock ?? 0); // Verifica 400
+
+    const newBook = this.bookRepository.create(dto);
+    
+    try {
+      return await this.bookRepository.save(newBook);
+    } catch (error) {
+        // Captura el error de duplicado de MySQL (Unique Constraint)
+        if ((error as any).code === 'ER_DUP_ENTRY') { 
+            throw new ConflictException('El libro ya existe');
+        }
+        throw error;
+    }
+  }
+
+  // Lógica de Listado (GET)
+  async findAll(query: any): Promise<Book[]> {
+
+    return this.bookRepository.find();
+  }
+
+  // Lógica de Detalle (GET /:id)
+  async findOne(id: number): Promise<Book> {
+    const book = await this.bookRepository.findOneBy({ id });
+    if (!book) {
+      throw new NotFoundException(`Libro con ID ${id} no existe`);
+    }
     return book;
   }
 
-  findAll(query: any) {
-    let data = [...this.books];
-    if (query.q) {
-      const q = String(query.q).toLowerCase();
-      data = data.filter(b => b.titulo.toLowerCase().includes(q) || b.autor.toLowerCase().includes(q));
-    }
-    if (query.conStock === '1' || query.conStock === 1 || query.conStock === true) {
-      data = data.filter(b => b.stock > 0);
-    }
-    const page = Number(query.page) || 1;
-    const limit = Number(query.limit) || 10;
-    const total = data.length;
-    const start = (page - 1) * limit;
-    const paged = data.slice(start, start + limit);
-    return { data: paged, total, page, limit };
-  }
-
-  findOne(id: number) {
-    const b = this.books.find(x => x.id === id);
-    if (!b) throw new NotFoundException('No encontrado');
-    return b;
-  }
-
-    update(id: number, dto: UpdateBookDto) {
-    const idx = this.books.findIndex(x => x.id === id);
-    if (idx === -1) throw new NotFoundException('No encontrado');
-
-    // Acceder de forma segura a propiedades opcionales de UpdateBookDto
-    const dtoAny = dto as any;
-
-    // conflicto: si cambiás titulo+autor y coinciden con otro libro
-    if (dtoAny.titulo || dtoAny.autor) {
-      const newTitulo = dtoAny.titulo ?? this.books[idx].titulo;
-      const newAutor = dtoAny.autor ?? this.books[idx].autor;
-      const conflict = this.books.find(b => b.id !== id && b.titulo === newTitulo && b.autor === newAutor);
-      if (conflict) throw new ConflictException('Conflicto con otro libro');
+  // Lógica de Actualización (PATCH)
+  async update(id: number, dto: UpdateBookDto): Promise<Book> {
+    this.validateStock(dto.stock ?? 0); // Verifica 400
+    
+    const book = await this.bookRepository.findOneBy({ id });
+    if (!book) {
+      throw new NotFoundException(`Libro con ID ${id} no existe`);
     }
 
-    const updated = { ...this.books[idx], ...dtoAny, actualizadoEn: new Date() };
-    this.books[idx] = updated;
-    return updated;
+    Object.assign(book, dto); 
+
+    try {
+        return await this.bookRepository.save(book);
+      } catch (error) {
+        
+        if ((error as any).code === 'ER_DUP_ENTRY') { 
+          throw new ConflictException('Conflicto con otro libro');
+        }
+        throw error;
+    }
   }
 
-
-  remove(id: number) {
-    const idx = this.books.findIndex(x => x.id === id);
-    if (idx === -1) throw new NotFoundException('No encontrado');
-    this.books.splice(idx,1);
-    return;
+  // Lógica de Eliminación (DELETE)
+  async remove(id: number): Promise<void> {
+    const result = await this.bookRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Libro con ID ${id} no existe`); 
+    }
   }
 }
